@@ -15,8 +15,8 @@ func EncodeDomainName(domain string) ([]byte, error) {
 			return nil, fmt.Errorf("label length exceeds 63 characters")
 		}
 
-		buf.WriteByte(byte(len(label))) // Write label length
-		buf.Write(label)                // Write label content
+		buf.WriteByte(byte(len(label)))
+		buf.Write(label)
 	}
 
 	buf.WriteByte(0) // Null byte to terminate the domain
