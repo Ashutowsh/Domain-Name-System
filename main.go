@@ -3,17 +3,21 @@ package main
 import (
 	"fmt"
 	"net"
+	"os"
 
 	"github.com/Ashutowwsh/dns-server-go/cache"
+	"github.com/Ashutowwsh/dns-server-go/config"
 	"github.com/Ashutowwsh/dns-server-go/db"
 	"github.com/Ashutowwsh/dns-server-go/handlers"
 )
 
 func main() {
-	fmt.Println("Starting DNS server on 127.0.0.1:2053")
+
+	appConfig := config.LoadConfig()
+	fmt.Printf("Starting %s in %s mode on port %d", appConfig.AppName, appConfig.AppEnv, appConfig.AppPort)
 
 	redisClient := cache.NewRedisClient()
-	postgresDB := db.NewPostgresDB("postgres://user:password@localhost:5432/dnsdb")
+	postgresDB := db.NewPostgresDB(os.Getenv("DATABASE_URL"))
 
 	dnsHandler := &handlers.DNSHandler{
 		RedisClient: redisClient,

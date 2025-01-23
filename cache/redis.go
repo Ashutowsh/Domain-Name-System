@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/Ashutowwsh/dns-server-go/config"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -13,9 +14,15 @@ type RedisClient struct {
 }
 
 func NewRedisClient() *RedisClient {
+
+	appConfig := config.LoadConfig()
+
+	redisAddr := appConfig.RedisURL
+	redisPassword := appConfig.RedisPassword
+
 	rdb := redis.NewClient(&redis.Options{
-		Addr:     "localhost:6379",
-		Password: "",
+		Addr:     redisAddr,
+		Password: redisPassword,
 		DB:       0,
 	})
 
