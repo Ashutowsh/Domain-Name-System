@@ -7,9 +7,9 @@ import (
 	"net"
 	"time"
 
-	"github.com/Ashutowwsh/dns-server-go/cache"
-	"github.com/Ashutowwsh/dns-server-go/db"
-	"github.com/Ashutowwsh/dns-server-go/message"
+	"github.com/Ashutowsh/dns-server-go/cache"
+	"github.com/Ashutowsh/dns-server-go/db"
+	"github.com/Ashutowsh/dns-server-go/message"
 )
 
 type DNSHandler struct {
@@ -54,6 +54,12 @@ func (h *DNSHandler) HandleDNSPacket(packet []byte, clientIP string) ([]byte, er
 		return []byte(cachedResponse), nil // Return cached response
 	}
 
+	// Fetch DNS Record from PostgreSQL
+	record, err := h.fetchDNSRecord(ctx, question.Name, question.Type)
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch DNS record: %w", err)
+	}
+
 	// Create DNS response
 	responseHeader := *header
 	responseHeader.QR = 1 // Response flag
@@ -62,10 +68,10 @@ func (h *DNSHandler) HandleDNSPacket(packet []byte, clientIP string) ([]byte, er
 
 	answer := message.ResourceRecord{
 		Name:  question.Name,
-		Type:  1, // A record
+		Type:  question.Type,
 		Class: 1, // IN class
-		TTL:   300,
-		RData: net.ParseIP("93.184.216.34").To4(),
+		TTL:   uint32(record.TTL),
+		RData: h.parseRData(record.Type, record.Value),
 	}
 
 	headerBytes, _ := responseHeader.Pack()
@@ -82,4 +88,49 @@ func (h *DNSHandler) HandleDNSPacket(packet []byte, clientIP string) ([]byte, er
 	_ = h.PostgresDB.LogQuery(ctx, question.Name, "A", "93.184.216.34")
 
 	return response, nil
+}
+
+func (h *DNSHandler) fetchDNSRecord(ctx context.Context, domain string, queryType uint16) (*db.DNSRecord, error) {
+	recordType := recordTypetoString(queryType)
+
+	var record db.DNSRecord
+	err := h.PostgresDB.Client.WithContext(ctx).Where("domain = ? AND type = ?", domain, recordType).First(&record).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &record, nil
+}
+
+func (h *DNSHandler) parseRData(recordType, value string) []byte {
+	switch recordType {
+	case "A":
+		return net.ParseIP(value).To4()
+
+	case "CNAME":
+		return []byte(value)
+
+	case "NS":
+		return []byte(value)
+
+	default:
+		return nil
+	}
+}
+
+func recordTypetoString(recordType uint16) string {
+	switch recordType {
+	case 1:
+		return "A"
+
+	case 2:
+		return "CNAME"
+
+	case 5:
+		return "NS"
+
+	default:
+		return "UNKNOWN"
+	}
 }

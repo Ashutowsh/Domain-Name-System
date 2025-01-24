@@ -16,6 +16,14 @@ type DNSLog struct {
 	Response  string
 }
 
+type DNSRecord struct {
+	ID     uint   `gorm:"primaryKey"`
+	Domain string `gorm:"index;not null"`
+	Type   string `gorm:"not null"`
+	Value  string `gorm:"not null"`
+	TTL    int    `gorm:"not null"`
+}
+
 type PostgresDB struct {
 	Client *gorm.DB
 }
@@ -28,7 +36,12 @@ func NewPostgresDB(dsn string) *PostgresDB {
 
 	err = db.AutoMigrate(&DNSLog{})
 	if err != nil {
-		log.Fatalf("Failed to migrate database : %v", err)
+		log.Fatalf("Failed to migrate database(Log) : %v", err)
+	}
+
+	err = db.AutoMigrate(&DNSRecord{})
+	if err != nil {
+		log.Fatalf("Failed to migrate database(Record) : %v", err)
 	}
 
 	return &PostgresDB{Client: db}

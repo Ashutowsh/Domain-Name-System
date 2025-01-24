@@ -5,10 +5,10 @@ import (
 	"net"
 	"os"
 
-	"github.com/Ashutowwsh/dns-server-go/cache"
-	"github.com/Ashutowwsh/dns-server-go/config"
-	"github.com/Ashutowwsh/dns-server-go/db"
-	"github.com/Ashutowwsh/dns-server-go/handlers"
+	"github.com/Ashutowsh/dns-server-go/cache"
+	"github.com/Ashutowsh/dns-server-go/config"
+	"github.com/Ashutowsh/dns-server-go/db"
+	"github.com/Ashutowsh/dns-server-go/handlers"
 )
 
 func main() {

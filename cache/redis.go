@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Ashutowwsh/dns-server-go/config"
+	"github.com/Ashutowsh/dns-server-go/config"
 	"github.com/redis/go-redis/v9"
 )
 
